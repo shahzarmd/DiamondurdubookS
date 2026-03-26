@@ -1,3 +1,97 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>انتظامیہ - Diamond Urdu Books</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-diamond"></i>
+                <h2>Diamond Urdu Books</h2>
+                <span class="admin-badge">انتظامیہ</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>ڈیش بورڈ</span>
+                </a>
+                <a href="#" class="nav-item" data-section="books">
+                    <i class="fas fa-book"></i>
+                    <span>کتب کا انتظام</span>
+                </a>
+                <a href="#" class="nav-item" data-section="add">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>نئی کتاب شامل کریں</span>
+                </a>
+                <a href="#" class="nav-item" data-section="upload">
+                    <i class="fas fa-upload"></i>
+                    <span>PDF اپ لوڈ</span>
+                </a>
+                <a href="#" class="nav-item" data-section="categories">
+                    <i class="fas fa-tags"></i>
+                    <span>موضوعات</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>ترتیبات</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-globe"></i>
+                    <span>ویب سائٹ دیکھیں</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <button id="mobileMenuToggle" class="mobile-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>انتظامیہ ڈیش بورڈ</h1>
+                </div>
+                <div class="header-right">
+                    <div class="admin-user">
+                        <i class="fas fa-user-circle"></i>
+                        <span>ایڈمنسٹریٹر</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- Dashboard Section -->
+                <div id="dashboardSection" class="admin-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>کل کتابیں</h3>
+                                <p id="totalBooks">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>کل ملاحظات</h3>
+                                <p id="totalViews">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-download"></i>
                             </div>
                             <div class="stat-info">
                                 <h3>کل ڈاؤن لوڈ</h3>
@@ -108,7 +202,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>پی ڈی ایف فائل اپ لوڈ کریں *</label>
-                                <input type="file" id="bookPdfFile" accept=".pdf" required>
+                                <input type="file" id="bookPdfFile" accept=".pdf">
                                 <small>صرف PDF فائلز (زیادہ سے زیادہ 50MB)</small>
                             </div>
                             
@@ -197,6 +291,134 @@
                                 <input type="number" id="itemsPerPage" value="12">
                             </div>
                             
+                            <div class="form-group">
+                                <label>نمایاں کتابیں</label>
+                                <input type="number" id="featuredCount" value="6">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enableDownloads" checked>
+                                ڈاؤن لوڈ کی سہولت فعال کریں
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enablePdfViewer" checked>
+                                آن لائن ریڈر فعال کریں
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="maintenanceMode">
+                                بحالی کا موڈ (صرف منتظمین دیکھ سکیں گے)
+                            </label>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> ترتیبات محفوظ کریں
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="exportData()">
+                                <i class="fas fa-download"></i> ڈیٹا ایکسپورٹ کریں
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="importData()">
+                                <i class="fas fa-upload"></i> ڈیٹا امپورٹ کریں
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Book Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>کتاب میں ترمیم کریں</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editBookForm">
+                    <input type="hidden" id="editBookId">
+                    <div class="form-group">
+                        <label>کتاب کا عنوان *</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>مصنف *</label>
+                        <input type="text" id="editAuthor" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>سال اشاعت</label>
+                            <input type="number" id="editYear">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع</label>
+                            <select id="editCategory">
+                                <option value="ادب">ادب</option>
+                                <option value="شاعری">شاعری</option>
+                                <option value="تاریخ">تاریخ</option>
+                                <option value="اسلامیات">اسلامیات</option>
+                                <option value="تعلیم">تعلیم</option>
+                                <option value="سیاست">سیاست</option>
+                                <option value="فلسفہ">فلسفہ</option>
+                                <option value="سائنس">سائنس</option>
+                                <option value="کہانیاں">کہانیاں</option>
+                                <option value="ناول">ناول</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>تعارف</label>
+                        <textarea id="editDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>پی ڈی ایف یو آر ایل</label>
+                        <input type="url" id="editPdfUrl">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">اپ ڈیٹ کریں</button>
+                        <button type="button" class="btn-secondary" onclick="closeEditModal()">منسوخ کریں</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>نیا موضوع شامل کریں</h2>
+                <span class="close-category">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label>موضوع کا نام *</label>
+                        <input type="text" id="categoryName" required placeholder="مثلاً: سائنس فکشن">
+                    </div>
+                    <div class="form-group">
+                        <label>تفصیل</label>
+                        <textarea id="categoryDescription" rows="2" placeholder="موضوع کے بارے میں مختصر تفصیل"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">شامل کریں</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div cla         
                             <div class="form-group">
                                 <label>نمایاں کتابیں</label>
                                 <input type="number" id="featuredCount" value="6">
