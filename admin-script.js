@@ -1,40 +1,39 @@
-// Diamond Urdu Books - Admin Dashboard JavaScript (FIXED VERSION)
-let books = [];
-let categories = [];
-let settings = {};
-let nextId = 1;
-
-// Load data from localStorage
-function loadData() {
-    const storedBooks = localStorage.getItem('diamond_urdu_books');
-    if (storedBooks) {
-        books = JSON.parse(storedBooks);
-        if (books.length > 0) {
-            nextId = Math.max(...books.map(b => b.id)) + 1;
-        }
-    } else {
-        // Sample Urdu books data
-        books = [
-            {
-                id: 1,
-                title: "دیوان غالب",
-                author: "مرزا اسد اللہ خان غالب",
-                year: 1821,
-                category: "شاعری",
-                description: "مرزا غالب کا مشہور دیوان جس میں ان کی مشہور غزلیات شامل ہیں۔ غالب اردو شاعری کے سب سے بڑے شاعر مانے جاتے ہیں۔",
-                pdfUrl: "https://www.rekhta.org/ebooks/deewan-e-ghalib-ghalib-ebooks",
-                views: 15420,
-                downloads: 5432,
-                addedDate: "2024-01-15"
-            },
-            {
-                id: 2,
-                title: "پیر کامل",
-                author: "عمران سیریز",
-                year: 2004,
-                category: "ناول",
-                description: "عمران سیریز کا مشہور ناول جو روحانیت اور محبت کے موضوع پر لکھا گیا ہے۔",
-                pdfUrl: "https://www.urdu-novels.com/peer-e-kamil",
+// ==================== ANALYTICS ====================
+function updateAnalytics() {
+    const totalUsers = users ? users.length : 0;
+    const totalRatings = Object.values(userRatings || {}).reduce((sum, ratings) => sum + Object.keys(ratings).length, 0);
+    const totalReviews = Object.values(userReviews || {}).reduce((sum, reviews) => sum + reviews.length, 0);
+    const totalFavorites = userFavorites ? userFavorites.length : 0;
+    
+    // Most popular books (by views or ratings)
+    const popularBooks = [...books].sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+    const topRatedBooks = [...books].sort((a,b) => getBookAverageRating(b.id) - getBookAverageRating(a.id)).slice(0, 5);
+    
+    const analyticsHtml = `
+        <div class="analytics-grid">
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div><h3>کل صارفین</h3><p>${totalUsers}</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-star"></i></div><div><h3>کل ریٹنگز</h3><p>${totalRatings}</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-comment"></i></div><div><h3>کل جائزے</h3><p>${totalReviews}</p></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-heart"></i></div><div><h3>پسندیدہ کل</h3><p>${totalFavorites}</p></div></div>
+        </div>
+        <div class="popular-books">
+            <h3>مشہور کتابیں (زیادہ دیکھی گئیں)</h3>
+            <ul>${popularBooks.map(b => `<li>${b.title} - ${b.views || 0} ملاحظات</li>`).join('')}</ul>
+        </div>
+        <div class="top-rated-books">
+            <h3>بہترین ریٹنگ والی کتابیں</h3>
+            <ul>${topRatedBooks.map(b => `<li>${b.title} - ${getBookAverageRating(b.id).toFixed(1)} ستارے</li>`).join('')}</ul>
+        </div>
+    `;
+    
+    const dashboard = document.getElementById('dashboardSection');
+    const existingAnalytics = dashboard.querySelector('.analytics-section');
+    if (existingAnalytics) existingAnalytics.remove();
+    const analyticsDiv = document.createElement('div');
+    analyticsDiv.className = 'analytics-section';
+    analyticsDiv.innerHTML = analyticsHtml;
+    dashboard.appendChild(analyticsDiv);
+}                pdfUrl: "https://www.urdu-novels.com/peer-e-kamil",
                 views: 28500,
                 downloads: 12345,
                 addedDate: "2024-01-20"
