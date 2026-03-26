@@ -1631,3 +1631,178 @@ body {
         flex: 1;
     }
   }
+/* User Menu */
+.user-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.2);
+    border-radius: 30px;
+}
+
+.user-avatar i {
+    font-size: 1.2rem;
+}
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    z-index: 100;
+}
+
+.user-menu:hover .user-dropdown {
+    display: block;
+}
+
+.user-dropdown a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.user-dropdown a:hover {
+    background: #f0f0f0;
+}
+
+/* Rating Stars */
+.stars {
+    display: flex;
+    gap: 0.5rem;
+    direction: ltr;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.stars i {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.stars i.active {
+    color: #ffc107;
+}
+
+/* Book Card Rating */
+.book-rating {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.book-rating i {
+    color: #ffc107;
+    font-size: 0.8rem;
+}
+
+/* Reading Progress */
+.progress-slider {
+    margin: 1.5rem 0;
+}
+
+.progress-slider input {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+/* Advanced Filters */
+.advanced-filters {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.advanced-filters .filter-group {
+    margin: 0;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Form Footer */
+.form-footer {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.form-footer a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+/* User Profile Page (inside modal) */
+.user-profile {
+    padding: 1rem;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.stat-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.stat-box i {
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.stat-box div {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+/* Reading List Items */
+.reading-list-item {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-books {
+    font-size: 0.8rem;
+    color: #666;
+}
