@@ -1,0 +1,13 @@
+{
+  "books": [
+    {
+      "id": 1,
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "year": 1813,
+      "category": "fiction",
+      "description": "A classic novel that follows the character development of Elizabeth Bennet...",
+      "pdfUrl": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm"
+    }
+  ]
+}
