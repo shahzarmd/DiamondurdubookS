@@ -1,40 +1,499 @@
-// Diamond Urdu Books - Public Website JavaScript
-let books = [];
-let categories = [];
-let settings = {};
+// ==================== USER SYSTEM ====================
+let currentUser = null;
+let users = [];
+let userRatings = {};
+let userReviews = {};
+let userProgress = {};
+let userFavorites = [];
+let userReadingLists = {};
 
-// Load data from localStorage
-function loadData() {
-    const storedBooks = localStorage.getItem('diamond_urdu_books');
-    if (storedBooks) {
-        books = JSON.parse(storedBooks);
+function loadUserData() {
+    const storedUsers = localStorage.getItem('diamond_users');
+    if (storedUsers) {
+        users = JSON.parse(storedUsers);
     } else {
-        // Sample Urdu books data
-        books = [
-            {
-                id: 1,
-                title: "دیوان غالب",
-                author: "مرزا اسد اللہ خان غالب",
-                year: 1821,
-                category: "شاعری",
-                description: "مرزا غالب کا مشہور دیوان جس میں ان کی مشہور غزلیات شامل ہیں۔ غالب اردو شاعری کے سب سے بڑے شاعر مانے جاتے ہیں۔",
-                pdfUrl: "https://www.rekhta.org/ebooks/deewan-e-ghalib-ghalib-ebooks",
-                views: 15420,
-                downloads: 5432,
-                addedDate: "2024-01-15"
-            },
-            {
-                id: 2,
-                title: "پیر کامل",
-                author: "عمران سیریز",
-                year: 2004,
-                category: "ناول",
-                description: "عمران سیریز کا مشہور ناول جو روحانیت اور محبت کے موضوع پر لکھا گیا ہے۔",
-                pdfUrl: "https://www.urdu-novels.com/peer-e-kamil",
-                views: 28500,
-                downloads: 12345,
-                addedDate: "2024-01-20"
-            },
+        // Demo user
+        users = [];
+    }
+    
+    const storedCurrentUser = localStorage.getItem('diamond_current_user');
+    if (storedCurrentUser) {
+        currentUser = JSON.parse(storedCurrentUser);
+        updateUIForLoggedInUser();
+    }
+    
+    const storedRatings = localStorage.getItem('diamond_ratings');
+    if (storedRatings) userRatings = JSON.parse(storedRatings);
+    else userRatings = {};
+    
+    const storedReviews = localStorage.getItem('diamond_reviews');
+    if (storedReviews) userReviews = JSON.parse(storedReviews);
+    else userReviews = {};
+    
+    const storedProgress = localStorage.getItem('diamond_progress');
+    if (storedProgress) userProgress = JSON.parse(storedProgress);
+    else userProgress = {};
+    
+    const storedFavorites = localStorage.getItem('diamond_favorites');
+    if (storedFavorites) userFavorites = JSON.parse(storedFavorites);
+    else userFavorites = [];
+    
+    const storedLists = localStorage.getItem('diamond_lists');
+    if (storedLists) userReadingLists = JSON.parse(storedLists);
+    else userReadingLists = { default: { name: "پسندیدہ", books: [] } };
+}
+
+function saveUserData() {
+    localStorage.setItem('diamond_users', JSON.stringify(users));
+    localStorage.setItem('diamond_current_user', JSON.stringify(currentUser));
+    localStorage.setItem('diamond_ratings', JSON.stringify(userRatings));
+    localStorage.setItem('diamond_reviews', JSON.stringify(userReviews));
+    localStorage.setItem('diamond_progress', JSON.stringify(userProgress));
+    localStorage.setItem('diamond_favorites', JSON.stringify(userFavorites));
+    localStorage.setItem('diamond_lists', JSON.stringify(userReadingLists));
+}
+
+function registerUser(name, email, password) {
+    if (users.find(u => u.email === email)) {
+        showNotification('یہ ای میل پہلے سے رجسٹر ہے', 'error');
+        return false;
+    }
+    const newUser = {
+        id: Date.now(),
+        name,
+        email,
+        password,
+        joinDate: new Date().toISOString()
+    };
+    users.push(newUser);
+    currentUser = newUser;
+    saveUserData();
+    updateUIForLoggedInUser();
+    showNotification('رجسٹریشن کامیاب! خوش آمدید', 'success');
+    return true;
+}
+
+function loginUser(email, password) {
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) {
+        showNotification('غلط ای میل یا پاس ورڈ', 'error');
+        return false;
+    }
+    currentUser = user;
+    saveUserData();
+    updateUIForLoggedInUser();
+    showNotification('لاگ ان کامیاب!', 'success');
+    return true;
+}
+
+function logoutUser() {
+    currentUser = null;
+    saveUserData();
+    updateUIForLoggedInUser();
+    showNotification('لاگ آؤٹ کر دیا گیا', 'info');
+}
+
+function updateUIForLoggedInUser() {
+    const loginBtn = document.getElementById('loginBtn');
+    const userMenu = document.getElementById('userMenu');
+    if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (userMenu) {
+            userMenu.style.display = 'inline-block';
+            document.getElementById('userName').textContent = currentUser.name;
+        }
+    } else {
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (userMenu) userMenu.style.display = 'none';
+    }
+}
+
+// ==================== BOOK RATINGS & REVIEWS ====================
+function rateBook(bookId, rating) {
+    if (!currentUser) {
+        showNotification('براہ کرم پہلے لاگ ان کریں', 'warning');
+        return false;
+    }
+    if (!userRatings[bookId]) userRatings[bookId] = {};
+    userRatings[bookId][currentUser.id] = rating;
+    saveUserData();
+    updateBookRatingDisplay(bookId);
+    return true;
+}
+
+function addReview(bookId, comment) {
+    if (!currentUser) {
+        showNotification('براہ کرم پہلے لاگ ان کریں', 'warning');
+        return false;
+    }
+    if (!userReviews[bookId]) userReviews[bookId] = [];
+    userReviews[bookId].push({
+        userId: currentUser.id,
+        userName: currentUser.name,
+        comment: comment,
+        date: new Date().toISOString()
+    });
+    saveUserData();
+    showNotification('آپ کا جائزہ شامل کر دیا گیا', 'success');
+    return true;
+}
+
+function getBookAverageRating(bookId) {
+    if (!userRatings[bookId]) return 0;
+    const ratings = Object.values(userRatings[bookId]);
+    if (ratings.length === 0) return 0;
+    const sum = ratings.reduce((a, b) => a + b, 0);
+    return sum / ratings.length;
+}
+
+function getUserRating(bookId) {
+    if (!currentUser || !userRatings[bookId]) return 0;
+    return userRatings[bookId][currentUser.id] || 0;
+}
+
+function updateBookRatingDisplay(bookId) {
+    const avg = getBookAverageRating(bookId);
+    // Update star display in book cards
+    document.querySelectorAll(`.book-card[data-id="${bookId}"] .book-rating`).forEach(el => {
+        if (el) {
+            el.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = i <= Math.round(avg) ? 'fas fa-star' : 'far fa-star';
+                el.appendChild(star);
+            }
+            el.appendChild(document.createTextNode(` (${Object.keys(userRatings[bookId] || {}).length})`));
+        }
+    });
+}
+
+// ==================== READING PROGRESS ====================
+function saveReadingProgress(bookId, page, totalPages) {
+    if (!currentUser) return;
+    if (!userProgress[currentUser.id]) userProgress[currentUser.id] = {};
+    userProgress[currentUser.id][bookId] = {
+        page: page,
+        totalPages: totalPages,
+        lastRead: new Date().toISOString()
+    };
+    saveUserData();
+    showNotification('پیشرفت محفوظ کر لی گئی', 'success');
+}
+
+function getReadingProgress(bookId) {
+    if (!currentUser || !userProgress[currentUser.id]) return null;
+    return userProgress[currentUser.id][bookId];
+}
+
+// ==================== FAVORITES ====================
+function toggleFavorite(bookId) {
+    if (!currentUser) {
+        showNotification('پسندیدہ میں شامل کرنے کے لیے لاگ ان کریں', 'warning');
+        return false;
+    }
+    const index = userFavorites.findIndex(f => f.userId === currentUser.id && f.bookId === bookId);
+    if (index === -1) {
+        userFavorites.push({ userId: currentUser.id, bookId: bookId, added: new Date().toISOString() });
+        showNotification('پسندیدہ میں شامل کر دیا گیا', 'success');
+    } else {
+        userFavorites.splice(index, 1);
+        showNotification('پسندیدہ سے ہٹا دیا گیا', 'info');
+    }
+    saveUserData();
+    return index === -1;
+}
+
+function isFavorite(bookId) {
+    return userFavorites.some(f => f.userId === currentUser?.id && f.bookId === bookId);
+}
+
+// ==================== READING LISTS ====================
+function createReadingList(listName) {
+    if (!currentUser) return;
+    const listId = Date.now().toString();
+    userReadingLists[listId] = {
+        name: listName,
+        books: [],
+        created: new Date().toISOString()
+    };
+    saveUserData();
+    showNotification(`"${listName}" لسٹ بن گئی`, 'success');
+    return listId;
+}
+
+function addToList(listId, bookId) {
+    if (!currentUser) return;
+    if (userReadingLists[listId] && !userReadingLists[listId].books.includes(bookId)) {
+        userReadingLists[listId].books.push(bookId);
+        saveUserData();
+        showNotification('کتاب لسٹ میں شامل کر دی گئی', 'success');
+    }
+}
+
+function removeFromList(listId, bookId) {
+    if (userReadingLists[listId]) {
+        userReadingLists[listId].books = userReadingLists[listId].books.filter(b => b !== bookId);
+        saveUserData();
+    }
+}
+
+// ==================== SOCIAL SHARING ====================
+function shareBook(book) {
+    const shareData = {
+        title: book.title,
+        text: `میں "${book.title}" پڑھ رہا ہوں - Diamond Urdu Books`,
+        url: window.location.href
+    };
+    if (navigator.share) {
+        navigator.share(shareData).catch(console.log);
+    } else {
+        // Fallback
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareData.text + ' ' + shareData.url)}`;
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData.url)}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareData.text)}&url=${encodeURIComponent(shareData.url)}`;
+        // Show custom share modal
+        showShareModal(book, { whatsapp: whatsappUrl, facebook: facebookUrl, twitter: twitterUrl });
+    }
+}
+
+function showShareModal(book, urls) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>کتاب شیئر کریں</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="share-buttons">
+                    <a href="${urls.whatsapp}" target="_blank" class="btn-share whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="${urls.facebook}" target="_blank" class="btn-share facebook"><i class="fab fa-facebook"></i> Facebook</a>
+                    <a href="${urls.twitter}" target="_blank" class="btn-share twitter"><i class="fab fa-twitter"></i> Twitter</a>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+    modal.querySelector('.close').onclick = () => modal.remove();
+}
+
+// ==================== BOOK RECOMMENDATIONS ====================
+function getRecommendations() {
+    if (!currentUser) return [];
+    // Simple recommendation: books from same categories as user's favorites
+    const favoriteBooks = userFavorites.filter(f => f.userId === currentUser.id).map(f => books.find(b => b.id === f.bookId)).filter(b => b);
+    const favoriteCategories = favoriteBooks.map(b => b.category);
+    const categoryCounts = {};
+    favoriteCategories.forEach(c => { categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
+    const topCategory = Object.keys(categoryCounts).sort((a,b) => categoryCounts[b] - categoryCounts[a])[0];
+    if (!topCategory) return books.slice(0, 6);
+    const recommended = books.filter(b => b.category === topCategory && !userFavorites.some(f => f.bookId === b.id));
+    return recommended.slice(0, 6);
+}
+
+// ==================== MODAL HANDLERS ====================
+function setupUserModals() {
+    const loginModal = document.getElementById('loginModal');
+    const registerModal = document.getElementById('registerModal');
+    const loginBtn = document.getElementById('loginBtn');
+    const showRegister = document.getElementById('showRegister');
+    const showLogin = document.getElementById('showLogin');
+    
+    if (loginBtn) loginBtn.onclick = () => loginModal.style.display = 'block';
+    if (showRegister) showRegister.onclick = (e) => { e.preventDefault(); loginModal.style.display = 'none'; registerModal.style.display = 'block'; };
+    if (showLogin) showLogin.onclick = (e) => { e.preventDefault(); registerModal.style.display = 'none'; loginModal.style.display = 'block'; };
+    
+    document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (loginUser(email, password)) loginModal.style.display = 'none';
+    });
+    
+    document.getElementById('registerForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        if (registerUser(name, email, password)) registerModal.style.display = 'none';
+    });
+    
+    document.querySelectorAll('.close-login, .close-register, .close-review, .close-progress, .close-lists, .close-addtolist').forEach(btn => {
+        btn.onclick = () => btn.closest('.modal').style.display = 'none';
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', logoutUser);
+}
+
+function openReviewModal(book) {
+    if (!currentUser) { showNotification('پہلے لاگ ان کریں', 'warning'); return; }
+    document.getElementById('reviewBookInfo').innerHTML = `<h3>${book.title}</h3><p>${book.author}</p>`;
+    document.getElementById('selectedRating').value = getUserRating(book.id);
+    document.getElementById('reviewComment').value = '';
+    // Update star display
+    const stars = document.querySelectorAll('#ratingStars i');
+    stars.forEach(star => {
+        star.classList.remove('active');
+        star.classList.add('far');
+        if (parseInt(star.dataset.rating) <= getUserRating(book.id)) {
+            star.classList.add('active');
+            star.classList.remove('far');
+            star.classList.add('fas');
+        }
+    });
+    document.getElementById('submitReviewBtn').onclick = () => {
+        const rating = parseInt(document.getElementById('selectedRating').value);
+        const comment = document.getElementById('reviewComment').value;
+        if (rating > 0) rateBook(book.id, rating);
+        if (comment.trim()) addReview(book.id, comment);
+        document.getElementById('reviewModal').style.display = 'none';
+    };
+    document.getElementById('reviewModal').style.display = 'block';
+}
+
+function openProgressModal(book) {
+    if (!currentUser) { showNotification('پہلے لاگ ان کریں', 'warning'); return; }
+    const progress = getReadingProgress(book.id);
+    const currentPage = progress ? progress.page : 0;
+    const totalPages = 200; // Placeholder - ideally from book data
+    document.getElementById('progressBookInfo').innerHTML = `<h3>${book.title}</h3>`;
+    const slider = document.getElementById('pageSlider');
+    const pageSpan = document.getElementById('pageNumber');
+    const totalSpan = document.getElementById('totalPages');
+    totalSpan.textContent = totalPages;
+    slider.value = currentPage;
+    pageSpan.textContent = currentPage;
+    slider.oninput = () => pageSpan.textContent = slider.value;
+    document.getElementById('saveProgressBtn').onclick = () => {
+        saveReadingProgress(book.id, parseInt(slider.value), totalPages);
+        document.getElementById('progressModal').style.display = 'none';
+    };
+    document.getElementById('progressModal').style.display = 'block';
+}
+
+function openAddToListModal(book) {
+    if (!currentUser) { showNotification('پہلے لاگ ان کریں', 'warning'); return; }
+    document.getElementById('addToListBookTitle').innerText = book.title;
+    const container = document.getElementById('userLists');
+    container.innerHTML = '';
+    for (const [id, list] of Object.entries(userReadingLists)) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-secondary';
+        btn.style.margin = '0.5rem';
+        btn.innerHTML = list.name;
+        btn.onclick = () => { addToList(id, book.id); document.getElementById('addToListModal').style.display = 'none'; };
+        container.appendChild(btn);
+    }
+    document.getElementById('createNewListFromAdd').onclick = () => {
+        const name = prompt('نئی لسٹ کا نام');
+        if (name) {
+            const newId = createReadingList(name);
+            addToList(newId, book.id);
+        }
+        document.getElementById('addToListModal').style.display = 'none';
+    };
+    document.getElementById('addToListModal').style.display = 'block';
+}
+
+function showUserProfile() {
+    if (!currentUser) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>پروفائل</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body user-profile">
+                <h3>${currentUser.name}</h3>
+                <p>${currentUser.email}</p>
+                <div class="profile-stats">
+                    <div class="stat-box"><i class="fas fa-heart"></i><div>${userFavorites.filter(f => f.userId === currentUser.id).length}</div><span>پسندیدہ</span></div>
+                    <div class="stat-box"><i class="fas fa-star"></i><div>${Object.values(userRatings).filter(r => r[currentUser.id]).length}</div><span>ریٹنگز</span></div>
+                    <div class="stat-box"><i class="fas fa-book"></i><div>${Object.keys(userProgress[currentUser.id] || {}).length}</div><span>پڑھی گئی</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+    modal.querySelector('.close').onclick = () => modal.remove();
+}
+
+function showFavorites() {
+    if (!currentUser) return;
+    const favoriteBooks = books.filter(b => userFavorites.some(f => f.userId === currentUser.id && f.bookId === b.id));
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>پسندیدہ کتابیں</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="books-grid" id="favoritesGrid"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    const grid = modal.querySelector('#favoritesGrid');
+    if (favoriteBooks.length === 0) grid.innerHTML = '<p>کوئی پسندیدہ کتاب نہیں</p>';
+    else {
+        grid.innerHTML = favoriteBooks.map(book => `
+            <div class="book-card" data-id="${book.id}">
+                <div class="book-cover"><i class="fas fa-book"></i></div>
+                <div class="book-info">
+                    <h3 class="book-title">${escapeHtml(book.title)}</h3>
+                    <p class="book-author">${escapeHtml(book.author)}</p>
+                    <span class="book-category">${book.category}</span>
+                </div>
+            </div>
+        `).join('');
+        grid.querySelectorAll('.book-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const bookId = parseInt(card.dataset.id);
+                const book = books.find(b => b.id === bookId);
+                if (book) openBookModal(book);
+                modal.remove();
+            });
+        });
+    }
+    modal.style.display = 'block';
+    modal.querySelector('.close').onclick = () => modal.remove();
+}
+
+function showReadingHistory() {
+    if (!currentUser) return;
+    const progress = userProgress[currentUser.id] || {};
+    const historyBooks = Object.keys(progress).map(bookId => {
+        const book = books.find(b => b.id == bookId);
+        if (!book) return null;
+        return { ...book, progress: progress[bookId] };
+    }).filter(b => b);
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>پڑھنے کی تاریخ</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="historyList"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    const list = modal.querySelector('#historyList');
+    if (historyBooks.length === 0) list.innerHTML = '<p>کوئی تاریخ نہیں</p>';
+    else {
+        list.innerHTML = historyBooks.map(book => `
+            <div class="reading-list-item">
+                <div><strong>${escapeHtml(book.title)}</strong><br><small>صفحہ ${book.progress.page} / ${book.progress            },
             {
                 id: 3,
                 title: "راجہ گدھ",
