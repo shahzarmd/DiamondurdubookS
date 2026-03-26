@@ -1197,3 +1197,23 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
     }
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+.popular-books, .top-rated-books {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+.popular-books ul, .top-rated-books ul {
+    list-style: none;
+    padding: 0;
+}
+.popular-books li, .top-rated-books li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
