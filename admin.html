@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>انتظامیہ - Diamond Urdu Books</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-diamond"></i>
+                <h2>Diamond Urdu Books</h2>
+                <span class="admin-badge">انتظامیہ</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>ڈیش بورڈ</span>
+                </a>
+                <a href="#" class="nav-item" data-section="books">
+                    <i class="fas fa-book"></i>
+                    <span>کتب کا انتظام</span>
+                </a>
+                <a href="#" class="nav-item" data-section="add">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>نئی کتاب شامل کریں</span>
+                </a>
+                <a href="#" class="nav-item" data-section="upload">
+                    <i class="fas fa-upload"></i>
+                    <span>PDF اپ لوڈ</span>
+                </a>
+                <a href="#" class="nav-item" data-section="categories">
+                    <i class="fas fa-tags"></i>
+                    <span>موضوعات</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>ترتیبات</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-globe"></i>
+                    <span>ویب سائٹ دیکھیں</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <button id="mobileMenuToggle" class="mobile-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>انتظامیہ ڈیش بورڈ</h1>
+                </div>
+                <div class="header-right">
+                    <div class="admin-user">
+                        <i class="fas fa-user-circle"></i>
+                        <span>ایڈمنسٹریٹر</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- Dashboard Section -->
+                <div id="dashboardSection" class="admin-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>کل کتابیں</h3>
+                                <p id="totalBooks">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>کل ملاحظات</h3>
+                                <p id="totalViews">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-download"></i>
+                                <
