@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Urdu Books - اردو کتابوں کا سب سے بڑا مجموعہ</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-diamond"></i>
+                    <span>Diamond Urdu Books</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#" class="active">ہوم</a>
+                    <a href="#books">کتب خانہ</a>
+                    <a href="#categories">موضوعات</a>
+                    <a href="#about">تعارف</a>
+                    <a href="admin.html" class="admin-link">
+                        <i class="fas fa-user-shield"></i> انتظامیہ
+                    </a>
+                </div>
+                <div class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section with Urdu Typography -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>ڈائمنڈ اردو کتب</h1>
+                <p>علم و ادب کا خزانہ | مفت اردو کتابیں پڑھیں اور ڈاؤن لوڈ کریں</p>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="کتاب کا نام، مصنف یا موضوع تلاش کریں...">
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <i class="fas fa-book"></i>
+                        <span id="totalBooksCount">0</span>
+                        <small>کتب</small>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <span id="totalReaders">0</span>
+                        <small>قارئین</small>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-download"></i>
+                        <span id="totalDownloads">0</span>
+                        <small>ڈاؤن لوڈ</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section" id="categories">
+        <div class="container">
+            <h2 class="section-title">موضوعات</h2>
+            <div class="categories-grid" id="categoriesGrid">
+                <!-- Categories will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Books Section -->
+    <section class="featured-section">
+        <div class="container">
+            <h2 class="section-title">نمایاں کتب</h2>
+            <div class="books-grid" id="featuredBooks">
+                <!-- Featured books will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- All Books Section -->
+    <section class="books-section" id="books">
+        <div class="container">
+            <h2 class="section-title">تمام کتب</h2>
+            <div class="filters">
+                <div class="filter-group">
+                    <label>موضوع:</label>
+                    <select id="categoryFilter">
+                        <option value="all">تمام موضوعات</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>ترتیب:</label>
+                    <select id="sortFilter">
+                        <option value="title">عنوان</option>
+                        <option value="author">مصنف</option>
+                        <option value="year">سال اشاعت</option>
+                    </select>
+                </div>
+            </div>
+            <div class="books-grid" id="booksGrid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>کتب لوڈ ہو رہی ہیں...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>ہمارے بارے میں</h2>
+                    <p>ڈائمنڈ اردو کتب ایک غیر منافع بخش ادارہ ہے جو اردو ادب اور علم کو فروغ دینے کے لیے کام کر رہا ہے۔ ہمارا مقصد اردو زبان کی کتب کو مفت آن لائن فراہم کرنا ہے۔</p>
+                    <p>ہم کلاسیکی ادب سے لے کر جدید موضوعات پر مشتمل ہزاروں کتابیں مہیا کر رہے ہیں۔ تمام کتابیں مکمل طور پر مفت ہیں اور آپ انہیں پڑھ سکتے ہیں یا ڈاؤن لوڈ کر سکتے ہیں۔</p>
+                    <div class="about-features">
+                        <div class="feature">
+                            <i class="fas fa-book-open"></i>
+                            <span>1000+ اردو کتب</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-download"></i>
+                            <span>مفت ڈاؤن لوڈ</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>موبائل فرینڈلی</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <i class="fas fa-diamond"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Book Modal -->
+    <div id="bookModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">کتاب کا عنوان</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="book-details">
+                    <div class="book-cover-modal">
+                        <i class="fas fa-book" id="modalCoverIcon"></i>
+                        <img id="modalCover" style="display: none;" alt="Book Cover">
+                    </div>
+                    <div class="book-info-modal">
+                        <p><strong><i class="fas fa-user"></i> مصنف:</strong> <span id="modalAuthor"></span></p>
+                        <p><strong><i class="fas fa-calendar"></i> سال اشاعت:</strong> <span id="modalYear"></span></p>
+                        <p><strong><i class="fas fa-tag"></i> موضوع:</strong> <span id="modalCategory"></span></p>
+                        <p><strong><i class="fas fa-info-circle"></i> تعارف:</strong></p>
+                        <p id="modalDescription"></p>
+                        <div class="modal-actions">
+                            <button id="readOnlineBtn" class="btn-primary">
+                                <i class="fas fa-book-reader"></i> آن لائن پڑھیں
+                            </button>
+                            <button id="downloadBtn" class="btn-secondary">
+                                <i class="fas fa-download"></i> ڈاؤن لوڈ کریں
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdfModal" class="modal pdf-viewer-modal">
+        <div class="modal-content pdf-modal-content">
+            <div class="modal-header">
+                <h2 id="pdfTitle">PDF ریڈر</h2>
+                <span class="close-pdf">&times;</span>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfFrame" src="" style="width:100%; height:80vh;" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-diamond"></i> Diamond Urdu Books</h3>
+                    <p>علم و ادب کا خزانہ - مفت اردو ڈیجیٹل لائبریری</p>
+                </div>
+                <div class="footer-section">
+                    <h3>مفید روابط</h3>
+                    <ul>
+                        <li><a href="#">ہمارے بارے میں</a></li>
+                        <li><a href="#">رابطہ کریں</a></li>
+                        <li><a href="#">شرائط و ضوابط</a></li>
+                        <li><a href="#">پرائیویسی پالیسی</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>سوشل میڈیا</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Diamond Urdu Books | جملہ حقوق محفوظ ہیں</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+              </html>
