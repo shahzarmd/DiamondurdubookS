@@ -1,40 +1,343 @@
-<!DOCTYPE html>
-<html lang="ur" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>انتظامیہ - Diamond Urdu Books</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="admin-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="admin-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-diamond"></i>
-                <h2>Diamond Urdu Books</h2>
-                <span class="admin-badge">انتظامیہ</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>کل ڈاؤن لوڈ</h3>
+                                <p id="totalDownloads">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>آج کے زائرین</h3>
+                                <p id="todayVisitors">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <h2>حالیہ سرگرمیاں</h2>
+                        <div class="activity-list" id="activityList">
+                            <!-- Activity items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Books Section -->
+                <div id="booksSection" class="admin-section">
+                    <div class="section-header">
+                        <h2>کتب کا انتظام</h2>
+                        <button class="btn-primary" onclick="showAddBookForm()">
+                            <i class="fas fa-plus"></i> نئی کتاب شامل کریں
+                        </button>
+                    </div>
+                    
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="adminSearch" placeholder="عنوان، مصنف یا موضوع سے تلاش کریں...">
+                    </div>
+
+                    <div class="books-table-container">
+                        <table class="books-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>عنوان</th>
+                                    <th>مصنف</th>
+                                    <th>سال</th>
+                                    <th>موضوع</th>
+                                    <th>ملاحظات</th>
+                                    <th>کارروائیاں</th>
+                                </tr>
+                            </thead>
+                            <tbody id="booksTableBody">
+                                <!-- Books will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add Book Section -->
+                <div id="addSection" class="admin-section">
+                    <div class="section-header">
+                        <h2>نئی کتاب شامل کریں</h2>
+                    </div>
+                    
+                    <form id="addBookForm" class="admin-form" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>کتاب کا عنوان *</label>
+                                <input type="text" id="bookTitle" required placeholder="کتاب کا عنوان اردو میں">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>مصنف *</label>
+                                <input type="text" id="bookAuthor" required placeholder="مصنف کا نام">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>سال اشاعت *</label>
+                                <input type="number" id="bookYear" required placeholder="YYYY">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>موضوع *</label>
+                                <select id="bookCategory" required>
+                                    <option value="">موضوع منتخب کریں</option>
+                                    <option value="ادب">ادب</option>
+                                    <option value="شاعری">شاعری</option>
+                                    <option value="تاریخ">تاریخ</option>
+                                    <option value="اسلامیات">اسلامیات</option>
+                                    <option value="تعلیم">تعلیم</option>
+                                    <option value="سیاست">سیاست</option>
+                                    <option value="فلسفہ">فلسفہ</option>
+                                    <option value="سائنس">سائنس</option>
+                                    <option value="کہانیاں">کہانیاں</option>
+                                    <option value="ناول">ناول</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>کتاب کا تعارف</label>
+                            <textarea id="bookDescription" rows="4" placeholder="کتاب کے بارے میں مختصر تعارف"></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>پی ڈی ایف فائل اپ لوڈ کریں *</label>
+                                <input type="file" id="bookPdfFile" accept=".pdf" required>
+                                <small>صرف PDF فائلز (زیادہ سے زیادہ 50MB)</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>کتاب کی تصویر (اختیاری)</label>
+                                <input type="file" id="bookCoverFile" accept="image/*">
+                                <small>JPG, PNG, GIF (زیادہ سے زیادہ 5MB)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>یا پی ڈی ایف یو آر ایل (اگر فائل اپ لوڈ نہیں کر رہے)</label>
+                            <input type="url" id="bookPdfUrl" placeholder="https://example.com/book.pdf">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> کتاب شامل کریں
+                            </button>
+                            <button type="reset" class="btn-secondary">
+                                <i class="fas fa-undo"></i> صاف کریں
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- PDF Upload Section -->
+                <div id="uploadSection" class="admin-section">
+                    <div class="section-header">
+                        <h2>پی ڈی ایف فائل اپ لوڈ</h2>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>پی ڈی ایف فائل یہاں ڈراپ کریں</h3>
+                        <p>یا</p>
+                        <button class="btn-primary" onclick="document.getElementById('pdfUploadInput').click()">
+                            <i class="fas fa-folder-open"></i> فائل منتخب کریں
+                        </button>
+                        <input type="file" id="pdfUploadInput" accept=".pdf" style="display: none;" multiple>
+                        <p class="upload-info">زیادہ سے زیادہ 50MB فی فائل | سپورٹڈ فارمیٹ: PDF</p>
+                    </div>
+                    
+                    <div class="uploaded-files">
+                        <h3>اپ لوڈ شدہ فائلیں</h3>
+                        <div id="uploadedFilesList" class="files-list">
+                            <!-- Uploaded files will be listed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categories Section -->
+                <div id="categoriesSection" class="admin-section">
+                    <div class="section-header">
+                        <h2>موضوعات کا انتظام</h2>
+                        <button class="btn-primary" onclick="showAddCategoryModal()">
+                            <i class="fas fa-plus"></i> نیا موضوع شامل کریں
+                        </button>
+                    </div>
+                    
+                    <div class="categories-list" id="categoriesList">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settingsSection" class="admin-section">
+                    <div class="section-header">
+                        <h2>ویب سائٹ کی ترتیبات</h2>
+                    </div>
+                    
+                    <form id="settingsForm" class="admin-form">
+                        <div class="form-group">
+                            <label>ویب سائٹ کا نام</label>
+                            <input type="text" id="siteTitle" value="Diamond Urdu Books">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ویب سائٹ کی تفصیل</label>
+                            <textarea id="siteDescription" rows="3">علم و ادب کا خزانہ - مفت اردو ڈیجیٹل لائبریری</textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>فی صفحہ کتابیں</label>
+                                <input type="number" id="itemsPerPage" value="12">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>نمایاں کتابیں</label>
+                                <input type="number" id="featuredCount" value="6">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enableDownloads" checked>
+                                ڈاؤن لوڈ کی سہولت فعال کریں
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enablePdfViewer" checked>
+                                آن لائن ریڈر فعال کریں
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="maintenanceMode">
+                                بحالی کا موڈ (صرف منتظمین دیکھ سکیں گے)
+                            </label>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> ترتیبات محفوظ کریں
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="exportData()">
+                                <i class="fas fa-download"></i> ڈیٹا ایکسپورٹ کریں
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="importData()">
+                                <i class="fas fa-upload"></i> ڈیٹا امپورٹ کریں
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-section="dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>ڈیش بورڈ</span>
-                </a>
-                <a href="#" class="nav-item" data-section="books">
-                    <i class="fas fa-book"></i>
-                    <span>کتب کا انتظام</span>
-                </a>
-                <a href="#" class="nav-item" data-section="add">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>نئی کتاب شامل کریں</span>
-                </a>
-                <a href="#" class="nav-item" data-section="upload">
-                    <i class="fas fa-upload"></i>
-                    <span>PDF اپ لوڈ</span>
-                </a>
+        </main>
+    </div>
+
+    <!-- Edit Book Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>کتاب میں ترمیم کریں</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editBookForm">
+                    <input type="hidden" id="editBookId">
+                    <div class="form-group">
+                        <label>کتاب کا عنوان *</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>مصنف *</label>
+                        <input type="text" id="editAuthor" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>سال اشاعت</label>
+                            <input type="number" id="editYear">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع</label>
+                            <select id="editCategory">
+                                <option value="ادب">ادب</option>
+                                <option value="شاعری">شاعری</option>
+                                <option value="تاریخ">تاریخ</option>
+                                <option value="اسلامیات">اسلامیات</option>
+                                <option value="تعلیم">تعلیم</option>
+                                <option value="سیاست">سیاست</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>تعارف</label>
+                        <textarea id="editDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>پی ڈی ایف یو آر ایل</label>
+                        <input type="url" id="editPdfUrl">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">اپ ڈیٹ کریں</button>
+                        <button type="button" class="btn-secondary" onclick="closeEditModal()">منسوخ کریں</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>نیا موضوع شامل کریں</h2>
+                <span class="close-category">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label>موضوع کا نام *</label>
+                        <input type="text" id="categoryName" required placeholder="مثلاً: سائنس فکشن">
+                    </div>
+                    <div class="form-group">
+                        <label>تفصیل</label>
+                        <textarea id="categoryDescription" rows="2" placeholder="موضوع کے بارے میں مختصر تفصیل"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">شامل کریں</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>تصدیق حذف کریں</h2>
+                <span class="close-delete">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>کیا آپ واقعی یہ کتاب حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔</p>
+                <div class="form-actions">
+                    <button id="confirmDeleteBtn" class="btn-danger">حذف کریں</button>
+                    <button class="btn-secondary" onclick="closeDeleteModal()">منسوخ کریں</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+                </html>                </a>
                 <a href="#" class="nav-item" data-section="categories">
                     <i class="fas fa-tags"></i>
                     <span>موضوعات</span>
