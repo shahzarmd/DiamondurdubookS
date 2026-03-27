@@ -1,40 +1,374 @@
-// ==================== ANALYTICS ====================
-function updateAnalytics() {
-    const totalUsers = users ? users.length : 0;
-    const totalRatings = Object.values(userRatings || {}).reduce((sum, ratings) => sum + Object.keys(ratings).length, 0);
-    const totalReviews = Object.values(userReviews || {}).reduce((sum, reviews) => sum + reviews.length, 0);
-    const totalFavorites = userFavorites ? userFavorites.length : 0;
-    
-    // Most popular books (by views or ratings)
-    const popularBooks = [...books].sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
-    const topRatedBooks = [...books].sort((a,b) => getBookAverageRating(b.id) - getBookAverageRating(a.id)).slice(0, 5);
-    
-    const analyticsHtml = `
-        <div class="analytics-grid">
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div><h3>کل صارفین</h3><p>${totalUsers}</p></div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-star"></i></div><div><h3>کل ریٹنگز</h3><p>${totalRatings}</p></div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-comment"></i></div><div><h3>کل جائزے</h3><p>${totalReviews}</p></div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-heart"></i></div><div><h3>پسندیدہ کل</h3><p>${totalFavorites}</p></div></div>
+let books = [];
+let categories = [];
+let settings = {};
+let nextId = 1;
+
+function loadData() {
+    const storedBooks = localStorage.getItem('diamond_urdu_books');
+    if (storedBooks) { books = JSON.parse(storedBooks); nextId = Math.max(...books.map(b=>b.id),0)+1; }
+    else { books = []; nextId = 1; }
+    const storedCats = localStorage.getItem('diamond_urdu_categories');
+    if (storedCats) categories = JSON.parse(storedCats);
+    else categories = [
+        { id: 1, name: "ادب", icon: "fa-book", count: 0 },
+        { id: 2, name: "شاعری", icon: "fa-pen-fancy", count: 0 },
+        { id: 3, name: "تاریخ", icon: "fa-landmark", count: 0 },
+        { id: 4, name: "اسلامیات", icon: "fa-mosque", count: 0 },
+        { id: 5, name: "ناول", icon: "fa-book-open", count: 0 }
+    ];
+    const storedSettings = localStorage.getItem('diamond_urdu_settings');
+    if (storedSettings) settings = JSON.parse(storedSettings);
+    else settings = { siteTitle: "Diamond Urdu Books", itemsPerPage: 12, featuredCount: 6, enableDownloads: true, enablePdfViewer: true };
+    updateCategoryCounts();
+}
+
+function saveBooks() { localStorage.setItem('diamond_urdu_books', JSON.stringify(books)); }
+function saveCategories() { localStorage.setItem('diamond_urdu_categories', JSON.stringify(categories)); }
+function saveSettings() { localStorage.setItem('diamond_urdu_settings', JSON.stringify(settings)); }
+function updateCategoryCounts() {
+    categories.forEach(c => c.count = books.filter(b => b.category === c.name).length);
+    saveCategories();
+}
+
+function displayBooksTable() {
+    const tbody = document.getElementById('booksTableBody');
+    if (!tbody) return;
+    const search = document.getElementById('adminSearch')?.value.toLowerCase() || '';
+    let filtered = books.filter(b => b.title.includes(search) || b.author.includes(search) || b.category.includes(search));
+    tbody.innerHTML = filtered.map(b => `
+        <tr>
+            <td>${b.id}</td>
+            <td><strong>${escapeHtml(b.title)}</strong></td>
+            <td>${escapeHtml(b.author)}</td>
+            <td>${b.year}</td>
+            <td><span class="category-badge">${b.category}</span></td>
+            <td>${b.views||0}</td>
+            <td class="action-buttons">
+                <button class="btn-edit" onclick="editBook(${b.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn-delete" onclick="deleteBook(${b.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateDashboardStats() {
+    document.getElementById('totalBooks').innerText = books.length;
+    document.getElementById('totalViews').innerText = books.reduce((s,b)=>s+(b.views||0),0).toLocaleString();
+    document.getElementById('totalDownloads').innerText = books.reduce((s,b)=>s+(b.downloads||0),0).toLocaleString();
+    const users = JSON.parse(localStorage.getItem('diamond_users')||'[]');
+    document.getElementById('totalUsers').innerText = users.length;
+    displayRecentActivity();
+}
+
+function displayRecentActivity() {
+    const recent = [...books].sort((a,b)=>new Date(b.addedDate)-new Date(a.addedDate)).slice(0,5);
+    const list = document.getElementById('activityList');
+    if (!list) return;
+    list.innerHTML = recent.map(b => `<div class="activity-item"><i class="fas fa-plus-circle"></i><div><div>${escapeHtml(b.title)} شامل کی گئی</div><small>${b.addedDate}</small></div></div>`).join('');
+}
+
+function displayCategories() {
+    const container = document.getElementById('categoriesList');
+    if (!container) return;
+    updateCategoryCounts();
+    container.innerHTML = categories.map(c => `
+        <div class="category-card">
+            <div><i class="fas ${c.icon}"></i> ${c.name}</div>
+            <div>${c.count} کتابیں</div>
+            <div><button class="btn-edit" onclick="editCategory(${c.id})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteCategory(${c.id})"><i class="fas fa-trash"></i></button></div>
         </div>
-        <div class="popular-books">
-            <h3>مشہور کتابیں (زیادہ دیکھی گئیں)</h3>
-            <ul>${popularBooks.map(b => `<li>${b.title} - ${b.views || 0} ملاحظات</li>`).join('')}</ul>
+    `).join('');
+}
+
+// Book CRUD
+function addBook(bookData) {
+    const newBook = { id: nextId++, ...bookData, views: 0, downloads: 0, addedDate: new Date().toISOString().split('T')[0] };
+    books.push(newBook);
+    saveBooks();
+    updateCategoryCounts();
+    displayBooksTable();
+    updateDashboardStats();
+    displayCategories();
+    showNotification('کتاب شامل کر دی گئی', 'success');
+}
+
+function editBook(id) {
+    const book = books.find(b => b.id === id);
+    if (!book) return;
+    document.getElementById('editBookId').value = book.id;
+    document.getElementById('editTitle').value = book.title;
+    document.getElementById('editAuthor').value = book.author;
+    document.getElementById('editYear').value = book.year;
+    const catSelect = document.getElementById('editCategory');
+    catSelect.innerHTML = categories.map(c => `<option value="${c.name}" ${c.name===book.category?'selected':''}>${c.name}</option>`).join('');
+    document.getElementById('editDescription').value = book.description || '';
+    document.getElementById('editPdfUrl').value = book.pdfUrl || '';
+    document.getElementById('editModal').style.display = 'block';
+}
+
+function updateBook(id, updated) {
+    const idx = books.findIndex(b => b.id === id);
+    if (idx !== -1) { books[idx] = { ...books[idx], ...updated }; saveBooks(); updateCategoryCounts(); displayBooksTable(); updateDashboardStats(); displayCategories(); showNotification('کتاب اپ ڈیٹ ہو گئی', 'success'); }
+}
+
+function deleteBook(id) {
+    window.currentDeleteId = id;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+function confirmDelete() {
+    books = books.filter(b => b.id !== window.currentDeleteId);
+    saveBooks();
+    updateCategoryCounts();
+    displayBooksTable();
+    updateDashboardStats();
+    displayCategories();
+    closeDeleteModal();
+    showNotification('کتاب حذف کر دی گئی', 'success');
+}
+
+// Category CRUD
+function addCategory(cat) {
+    const newId = Math.max(...categories.map(c=>c.id),0)+1;
+    categories.push({ id: newId, name: cat.name, icon: "fa-book", count: 0, description: cat.description });
+    saveCategories();
+    displayCategories();
+    showNotification('موضوع شامل کر دیا گیا', 'success');
+}
+
+function editCategory(id) {
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+    const newName = prompt('نیا نام:', cat.name);
+    if (newName) { cat.name = newName; saveCategories(); displayCategories(); showNotification('موضوع اپ ڈیٹ ہو گیا', 'success'); }
+}
+
+function deleteCategory(id) {
+    if (confirm('کیا آپ واقعی یہ موضوع حذف کرنا چاہتے ہیں؟')) {
+        categories = categories.filter(c => c.id !== id);
+        saveCategories();
+        displayCategories();
+        showNotification('موضوع حذف کر دیا گیا', 'warning');
+    }
+}
+
+// PDF Upload
+function setupFileUpload() {
+    const area = document.getElementById('uploadArea');
+    const input = document.getElementById('pdfUploadInput');
+    area.addEventListener('click', () => input.click());
+    area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+    area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+    area.addEventListener('drop', e => { e.preventDefault(); area.classList.remove('drag-over'); handleFiles(Array.from(e.dataTransfer.files)); });
+    input.addEventListener('change', () => handleFiles(Array.from(input.files)));
+}
+
+function handleFiles(files) {
+    files.forEach(file => {
+        if (file.type !== 'application/pdf') { showNotification('صرف PDF فائلز', 'error'); return; }
+        if (file.size > 50*1024*1024) { showNotification('فائل بہت بڑی ہے (50MB max)', 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+            const uploaded = JSON.parse(localStorage.getItem('diamond_uploaded_pdfs')||'[]');
+            uploaded.push({ id: Date.now(), name: file.name, size: file.size, data: e.target.result, uploadDate: new Date().toISOString() });
+            localStorage.setItem('diamond_uploaded_pdfs', JSON.stringify(uploaded));
+            displayUploadedFiles();
+            showNotification(`${file.name} اپ لوڈ ہو گئی`, 'success');
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function displayUploadedFiles() {
+    const list = document.getElementById('uploadedFilesList');
+    if (!list) return;
+    const files = JSON.parse(localStorage.getItem('diamond_uploaded_pdfs')||'[]');
+    if (!files.length) { list.innerHTML = '<div class="empty-state">کوئی فائل نہیں</div>'; return; }
+    list.innerHTML = files.map((f, idx) => `
+        <div class="file-item">
+            <div><i class="fas fa-file-pdf"></i> ${f.name}<br><small>${(f.size/1024/1024).toFixed(2)} MB</small></div>
+            <div><button onclick="copyFileUrl(${idx})"><i class="fas fa-copy"></i></button><button onclick="deleteFile(${idx})"><i class="fas fa-trash"></i></button></div>
         </div>
-        <div class="top-rated-books">
-            <h3>بہترین ریٹنگ والی کتابیں</h3>
-            <ul>${topRatedBooks.map(b => `<li>${b.title} - ${getBookAverageRating(b.id).toFixed(1)} ستارے</li>`).join('')}</ul>
-        </div>
-    `;
-    
-    const dashboard = document.getElementById('dashboardSection');
-    const existingAnalytics = dashboard.querySelector('.analytics-section');
-    if (existingAnalytics) existingAnalytics.remove();
-    const analyticsDiv = document.createElement('div');
-    analyticsDiv.className = 'analytics-section';
-    analyticsDiv.innerHTML = analyticsHtml;
-    dashboard.appendChild(analyticsDiv);
-}                pdfUrl: "https://www.urdu-novels.com/peer-e-kamil",
-                views: 28500,
+    `).join('');
+}
+
+function copyFileUrl(idx) {
+    const files = JSON.parse(localStorage.getItem('diamond_uploaded_pdfs')||'[]');
+    const file = files[idx];
+    if (file && file.data) {
+        const blob = dataURLtoBlob(file.data);
+        const url = URL.createObjectURL(blob);
+        navigator.clipboard.writeText(url);
+        showNotification('URL کاپی ہو گئی', 'success');
+    }
+}
+
+function deleteFile(idx) {
+    if (confirm('حذف کریں؟')) {
+        let files = JSON.parse(localStorage.getItem('diamond_uploaded_pdfs')||'[]');
+        files.splice(idx, 1);
+        localStorage.setItem('diamond_uploaded_pdfs', JSON.stringify(files));
+        displayUploadedFiles();
+        showNotification('فائل حذف کر دی گئی', 'success');
+    }
+}
+
+function dataURLtoBlob(dataURL) {
+    const arr = dataURL.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]);
+    let n = bstr.length, u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    return new Blob([u8arr], { type: mime });
+}
+
+// Settings
+function loadSettings() {
+    document.getElementById('siteTitle').value = settings.siteTitle;
+    document.getElementById('siteDescription').value = settings.siteDescription;
+    document.getElementById('itemsPerPage').value = settings.itemsPerPage;
+    document.getElementById('featuredCount').value = settings.featuredCount;
+    document.getElementById('enableDownloads').checked = settings.enableDownloads;
+    document.getElementById('enablePdfViewer').checked = settings.enablePdfViewer;
+}
+
+function saveSettingsFromForm() {
+    settings.siteTitle = document.getElementById('siteTitle').value;
+    settings.siteDescription = document.getElementById('siteDescription').value;
+    settings.itemsPerPage = parseInt(document.getElementById('itemsPerPage').value);
+    settings.featuredCount = parseInt(document.getElementById('featuredCount').value);
+    settings.enableDownloads = document.getElementById('enableDownloads').checked;
+    settings.enablePdfViewer = document.getElementById('enablePdfViewer').checked;
+    saveSettings();
+    showNotification('ترتیبات محفوظ ہو گئیں', 'success');
+}
+
+// Data export/import
+function exportData() {
+    const data = { books, categories, settings, exportDate: new Date().toISOString() };
+    const a = document.createElement('a');
+    a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(data, null, 2));
+    a.download = `diamond-urdu-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const imported = JSON.parse(ev.target.result);
+            if (imported.books) books = imported.books;
+            if (imported.categories) categories = imported.categories;
+            if (imported.settings) settings = imported.settings;
+            saveBooks(); saveCategories(); saveSettings();
+            nextId = Math.max(...books.map(b=>b.id),0)+1;
+            displayBooksTable(); updateDashboardStats(); displayCategories(); loadSettings();
+            showNotification('ڈیٹا امپورٹ ہو گیا', 'success');
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+// Navigation
+function navigateTo(section) {
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`${section}Section`).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelector(`.nav-item[data-section="${section}"]`).classList.add('active');
+    if (section === 'books') displayBooksTable();
+    if (section === 'dashboard') updateDashboardStats();
+    if (section === 'categories') displayCategories();
+    if (section === 'upload') displayUploadedFiles();
+    if (section === 'settings') loadSettings();
+}
+
+function showAddBookForm() { navigateTo('add'); document.getElementById('addBookForm').reset(); }
+function showAddCategoryModal() { document.getElementById('categoryModal').style.display = 'block'; document.getElementById('addCategoryForm').reset(); }
+function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+function showNotification(msg, type='info') {
+    const n = document.createElement('div');
+    n.className = `notification notification-${type}`;
+    n.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-exclamation-circle':'fa-info-circle'}"></i><span>${msg}</span>`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3000);
+}
+function escapeHtml(text) { return text ? text.replace(/[&<>]/g, function(m){if(m==='&')return'&amp;';if(m==='<')return'&lt;';if(m==='>')return'&gt;';return m;}) : ''; }
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    displayBooksTable();
+    updateDashboardStats();
+    displayCategories();
+    loadSettings();
+    setupFileUpload();
+    displayUploadedFiles();
+    document.querySelectorAll('.nav-item[data-section]').forEach(item => item.addEventListener('click', e => { e.preventDefault(); navigateTo(item.dataset.section); }));
+    document.getElementById('addBookForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const pdfFile = document.getElementById('bookPdfFile').files[0];
+        let pdfUrl = document.getElementById('bookPdfUrl').value;
+        if (pdfFile) {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const uploaded = JSON.parse(localStorage.getItem('diamond_uploaded_pdfs')||'[]');
+                const fileData = { id: Date.now(), name: pdfFile.name, size: pdfFile.size, data: ev.target.result, uploadDate: new Date().toISOString() };
+                uploaded.push(fileData);
+                localStorage.setItem('diamond_uploaded_pdfs', JSON.stringify(uploaded));
+                const blob = dataURLtoBlob(ev.target.result);
+                pdfUrl = URL.createObjectURL(blob);
+                addBook({
+                    title: document.getElementById('bookTitle').value,
+                    author: document.getElementById('bookAuthor').value,
+                    year: parseInt(document.getElementById('bookYear').value),
+                    category: document.getElementById('bookCategory').value,
+                    description: document.getElementById('bookDescription').value,
+                    pdfUrl
+                });
+                document.getElementById('addBookForm').reset();
+                navigateTo('books');
+            };
+            reader.readAsDataURL(pdfFile);
+        } else if (pdfUrl) {
+            addBook({
+                title: document.getElementById('bookTitle').value,
+                author: document.getElementById('bookAuthor').value,
+                year: parseInt(document.getElementById('bookYear').value),
+                category: document.getElementById('bookCategory').value,
+                description: document.getElementById('bookDescription').value,
+                pdfUrl
+            });
+            document.getElementById('addBookForm').reset();
+            navigateTo('books');
+        } else showNotification('PDF فائل یا URL درج کریں', 'error');
+    });
+    document.getElementById('editBookForm').addEventListener('submit', e => {
+        e.preventDefault();
+        updateBook(parseInt(document.getElementById('editBookId').value), {
+            title: document.getElementById('editTitle').value,
+            author: document.getElementById('editAuthor').value,
+            year: parseInt(document.getElementById('editYear').value),
+            category: document.getElementById('editCategory').value,
+            description: document.getElementById('editDescription').value,
+            pdfUrl: document.getElementById('editPdfUrl').value
+        });
+        closeEditModal();
+    });
+    document.getElementById('addCategoryForm').addEventListener('submit', e => {
+        e.preventDefault();
+        addCategory({ name: document.getElementById('categoryName').value, description: document.getElementById('categoryDescription').value });
+        document.getElementById('categoryModal').style.display = 'none';
+    });
+    document.getElementById('settingsForm').addEventListener('submit', e => { e.preventDefault(); saveSettingsFromForm(); });
+    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    document.getElementById('adminSearch').addEventListener('input', displayBooksTable);
+    document.getElementById('mobileMenuToggle').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('active'));
+    document.querySelectorAll('.close, .close-category, .close-delete').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal').style.display = 'none'));
+    window.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; });
+});                views: 28500,
                 downloads: 12345,
                 addedDate: "2024-01-20"
             }
